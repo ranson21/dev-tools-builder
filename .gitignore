@@ -1,0 +1,4 @@
+*.log
+.packer.d/
+packer_cache/
+.DS_Store
