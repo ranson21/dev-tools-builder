@@ -40,34 +40,31 @@ steps:
     id: "bump-version"
     waitFor: ["get-version"]
 
-  # Configure Docker credentials
-  - name: "gcr.io/cloud-builders/gcloud"
-    entrypoint: "bash"
+  # Build the docker image
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder
+    entrypoint: "make"
     args:
-      - "-c"
-      - |
-        gcloud auth configure-docker ${_LOCATION}-docker.pkg.dev
-    id: "configure-docker"
-    waitFor:
-      ["bump-version"]
-
-      # Run make deploy with new version
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        # Install Docker
-        apt-get update && apt-get install -y docker.io
-        # Set default version if file doesn't exist
-        export BUILDER_TAG="$$(cat new_version.txt 2>/dev/null || echo latest)"
-        # Run make deploy
-        make deploy
+      - "build"
+      - "BUILDER_TAG=$(cat new_version.txt || echo latest)"
     secretEnv: ["GITHUB_TOKEN"]
-    env:
-      - "PROJECT_ID=$PROJECT_ID"
-      - "LOCATION=${_LOCATION}"
-    id: "deploy"
+    id: "build"
+    waitFor: ["get-version"]
+
+  # Run the tests for the built image
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder
+    entrypoint: "make"
+    args: ["test"]
+    id: "test"
+    waitFor: ["build"]
+
+  # Deploy the docker image
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder
+    entrypoint: "make"
+    args:
+      - "deploy"
+      - "BUILDER_TAG=$(cat new_version.txt || echo latest)"
+    secretEnv: ["GITHUB_TOKEN"]
+    id: "build"
     waitFor: ["configure-docker"]
 
   # Create GitHub release
@@ -128,7 +125,7 @@ substitutions:
   _IS_MERGE: "false"
   _PR_NUMBER: "" # PR number for reference
   _PARENT_REPO: "portfolio" # Parent repository name
-  _SUBMODULE_PATH: "assets/scripts/dev-tools-builder" # Path to submodule in parent repo
+  _SUBMODULE_PATH: "assets/images/dev-tools-builder" # Path to submodule in parent repo
 
 options:
   logging: CLOUD_LOGGING_ONLY

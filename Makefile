@@ -7,7 +7,6 @@ BUILDER_NAME := dev-tools-builder
 BUILDER_TAG ?= latest  # Can be overridden by environment variable
 BUILDER_IMAGE_LATEST := $(LOCATION)-docker.pkg.dev/$(PROJECT_ID)/docker/$(BUILDER_NAME):latest
 
-
 # Variables
 COMMAND ?= help
 PACKER_DIR := bake
