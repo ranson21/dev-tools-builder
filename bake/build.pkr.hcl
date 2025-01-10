@@ -292,7 +292,7 @@ build {
 
 // Complete tools build
 build {
-  name    = "${var.image_name}-complete"
+  name    = "${var.image_name}"
   sources = ["source.docker.ubuntu"]
 
   provisioner "shell" {
@@ -419,7 +419,7 @@ build {
   }
 
   post-processor "docker-tag" {
-    repository = "${var.image_repository}-complete"
+    repository = "${var.image_repository}"
     tags       = ["latest"]
   }
 }

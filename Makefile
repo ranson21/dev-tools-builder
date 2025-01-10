@@ -24,11 +24,11 @@ validate:
 
 test: build
 	@echo "Testing Docker image basic functionality..."
-	docker run --rm $(BUILDER_BASE)-complete help
+	docker run --rm $(BUILDER_BASE) help
 
 test_all:
 	@echo "Testing all tool versions..."
-	docker run --rm $(BUILDER_BASE)-complete versions
+	docker run --rm $(BUILDER_BASE) versions
 
 test_command:
 	@echo "Testing NPM version..."
@@ -37,12 +37,12 @@ test_command:
 # Push image(s)
 .PHONY: push
 push:
-	@echo "Pushing latest tag..."
-	@docker push $(BUILDER_IMAGE_LATEST)
-	@if [ "$(BUILDER_TAG)" != "latest" ]; then \
-		echo "Pushing version $(BUILDER_TAG)..."; \
-		docker push $(LOCATION)-docker.pkg.dev/$(PROJECT_ID)/docker/$(BUILDER_NAME):$(BUILDER_TAG); \
-	fi
+	@echo "Pushing all images in parallel..."
+	@docker push $(BUILDER_BASE) 2>&1 | sed 's/^/complete: /' & \
+	docker push $(BUILDER_BASE)-basic 2>&1 | sed 's/^/basic: /' & \
+	docker push $(BUILDER_BASE)-packer 2>&1 | sed 's/^/packer: /' & \
+	docker push $(BUILDER_BASE)-terraform 2>&1 | sed 's/^/terraform: /' & \
+	wait
 
 # Refresh Docker credentials
 .PHONY: refresh
