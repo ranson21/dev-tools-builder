@@ -75,6 +75,7 @@ steps:
       - |
         echo "Content of new_version.txt: $(cat new_version.txt)"
         VERSION=$(cat new_version.txt)
+
         if [[ "${_IS_MERGE}" != "true" ]]; then
           python /usr/local/bin/cli.py \
             --action create-release \
