@@ -22,7 +22,7 @@ validate:
 	@echo "Validating Packer configuration..."
 	cd $(PACKER_DIR) && packer validate .
 
-test: build
+test:
 	@echo "Testing Docker image basic functionality..."
 	docker run --rm $(BUILDER_BASE) help
 
