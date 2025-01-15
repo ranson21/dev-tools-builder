@@ -1,4 +1,3 @@
-// build.pkr.hcl
 packer {
   required_plugins {
     docker = {
@@ -8,8 +7,14 @@ packer {
   }
 }
 
+
 locals {
   timeout = "5m"
+  # Create version tags only if version is provided
+  basic_tags     = var.version == "" ? ["basic"] : ["basic", "basic-${var.version}"]
+  packer_tags    = var.version == "" ? ["packer"] : ["packer", "packer-${var.version}"]
+  terraform_tags = var.version == "" ? ["terraform"] : ["terraform", "terraform-${var.version}"]
+  full_tags      = var.version == "" ? ["latest", "full"] : ["latest", "full", "full-${var.version}"]
 }
 
 source "docker" "ubuntu" {
@@ -21,6 +26,7 @@ source "docker" "ubuntu" {
   ]
 }
 
+# Basic build with just Poetry
 build {
   name    = "${var.image_name}-basic"
   sources = ["source.docker.ubuntu"]
@@ -62,11 +68,12 @@ build {
   }
 
   post-processor "docker-tag" {
-    repository = "${var.image_repository}-basic"
-    tags       = ["latest"]
+    repository = var.image_repository
+    tags       = local.basic_tags
   }
 }
 
+# Packer build with Packer, Docker, and GCloud
 build {
   name    = "${var.image_name}-packer"
   sources = ["source.docker.ubuntu"]
@@ -85,8 +92,9 @@ build {
   }
 
   provisioner "shell" {
-    script  = "scripts/install-packer.sh"
-    timeout = local.timeout
+    script           = "scripts/install-packer.sh"
+    environment_vars = ["PACKER_VERSION=${var.packer_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
@@ -95,8 +103,9 @@ build {
   }
 
   provisioner "shell" {
-    script  = "scripts/install-gcloud.sh"
-    timeout = local.timeout
+    script           = "scripts/install-gcloud.sh"
+    environment_vars = ["GCLOUD_VERSION=${var.gcloud_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "file" {
@@ -118,11 +127,12 @@ build {
   }
 
   post-processor "docker-tag" {
-    repository = "${var.image_repository}-packer"
-    tags       = ["latest"]
+    repository = var.image_repository
+    tags       = local.packer_tags
   }
 }
 
+# Terraform build with Terraform, Terragrunt, and GCloud
 build {
   name    = "${var.image_name}-terraform"
   sources = ["source.docker.ubuntu"]
@@ -141,18 +151,21 @@ build {
   }
 
   provisioner "shell" {
-    script  = "scripts/install-terraform.sh"
-    timeout = local.timeout
+    script           = "scripts/install-terraform.sh"
+    environment_vars = ["TERRAFORM_VERSION=${var.terraform_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
-    script  = "scripts/install-terragrunt.sh"
-    timeout = local.timeout
+    script           = "scripts/install-terragrunt.sh"
+    environment_vars = ["TERRAGRUNT_VERSION=${var.terragrunt_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
-    script  = "scripts/install-gcloud.sh"
-    timeout = local.timeout
+    script           = "scripts/install-gcloud.sh"
+    environment_vars = ["GCLOUD_VERSION=${var.gcloud_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "file" {
@@ -174,13 +187,14 @@ build {
   }
 
   post-processor "docker-tag" {
-    repository = "${var.image_repository}-terraform"
-    tags       = ["latest"]
+    repository = var.image_repository
+    tags       = local.terraform_tags
   }
 }
 
+# Full build with all tools
 build {
-  name    = "${var.image_name}"
+  name    = var.image_name
   sources = ["source.docker.ubuntu"]
 
   provisioner "shell" {
@@ -197,8 +211,9 @@ build {
   }
 
   provisioner "shell" {
-    script  = "scripts/install-packer.sh"
-    timeout = local.timeout
+    script           = "scripts/install-packer.sh"
+    environment_vars = ["PACKER_VERSION=${var.packer_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
@@ -207,18 +222,21 @@ build {
   }
 
   provisioner "shell" {
-    script  = "scripts/install-terraform.sh"
-    timeout = local.timeout
+    script           = "scripts/install-terraform.sh"
+    environment_vars = ["TERRAFORM_VERSION=${var.terraform_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
-    script  = "scripts/install-terragrunt.sh"
-    timeout = local.timeout
+    script           = "scripts/install-terragrunt.sh"
+    environment_vars = ["TERRAGRUNT_VERSION=${var.terragrunt_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
-    script  = "scripts/install-gcloud.sh"
-    timeout = local.timeout
+    script           = "scripts/install-gcloud.sh"
+    environment_vars = ["GCLOUD_VERSION=${var.gcloud_version}"]
+    timeout          = local.timeout
   }
 
   provisioner "shell" {
@@ -245,7 +263,7 @@ build {
   }
 
   post-processor "docker-tag" {
-    repository = "${var.image_repository}"
-    tags       = ["latest"]
+    repository = var.image_repository
+    tags       = local.full_tags
   }
 }

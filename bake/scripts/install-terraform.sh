@@ -1,9 +1,10 @@
 #!/bin/bash
 set -ex
-echo 'Installing Terraform...'
+VERSION=${TERRAFORM_VERSION:-"1.5.7"}
+echo "Installing Terraform version ${VERSION}..."
 cd /download
-wget --progress=bar:force https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip
-unzip terraform_1.5.7_linux_amd64.zip
+wget --progress=bar:force "https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_linux_amd64.zip"
+unzip "terraform_${VERSION}_linux_amd64.zip"
 chmod +x terraform
 mv terraform /usr/local/bin/
-rm terraform_1.5.7_linux_amd64.zip
+rm "terraform_${VERSION}_linux_amd64.zip"
