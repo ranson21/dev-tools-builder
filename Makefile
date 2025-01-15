@@ -13,6 +13,7 @@ COMMAND ?= help
 IMAGE_TYPE ?= complete
 PACKER_DIR := bake
 IMAGE_NAME := dev-tools-builder:latest
+NEW_VERSION ?= ""
 
 init:
 	@echo "Initializing Packer plugins..."
@@ -38,11 +39,25 @@ test_command:
 .PHONY: push
 push:
 	@echo "Pushing all images in parallel..."
-	@docker push $(BUILDER_BASE) 2>&1 | sed 's/^/complete: /' & \
-	docker push $(BUILDER_BASE)-basic 2>&1 | sed 's/^/basic: /' & \
-	docker push $(BUILDER_BASE)-packer 2>&1 | sed 's/^/packer: /' & \
-	docker push $(BUILDER_BASE)-terraform 2>&1 | sed 's/^/terraform: /' & \
-	wait
+	@if [ -n "$(NEW_VERSION)" ]; then \
+		docker push $(BUILDER_BASE):full-$(NEW_VERSION) 2>&1 | sed 's/^/full-version: /' & \
+		docker push $(BUILDER_BASE):basic-$(NEW_VERSION) 2>&1 | sed 's/^/basic-version: /' & \
+		docker push $(BUILDER_BASE):packer-$(NEW_VERSION) 2>&1 | sed 's/^/packer-version: /' & \
+		docker push $(BUILDER_BASE):terraform-$(NEW_VERSION) 2>&1 | sed 's/^/terraform-version: /' & \
+		docker push $(BUILDER_BASE) 2>&1 | sed 's/^/latest: /' & \
+		docker push $(BUILDER_BASE):full 2>&1 | sed 's/^/full: /' & \
+		docker push $(BUILDER_BASE):basic 2>&1 | sed 's/^/basic: /' & \
+		docker push $(BUILDER_BASE):packer 2>&1 | sed 's/^/packer: /' & \
+		docker push $(BUILDER_BASE):terraform 2>&1 | sed 's/^/terraform: /' & \
+		wait; \
+	else \
+		docker push $(BUILDER_BASE) 2>&1 | sed 's/^/latest: /' & \
+		docker push $(BUILDER_BASE):full 2>&1 | sed 's/^/full: /' & \
+		docker push $(BUILDER_BASE):basic 2>&1 | sed 's/^/basic: /' & \
+		docker push $(BUILDER_BASE):packer 2>&1 | sed 's/^/packer: /' & \
+		docker push $(BUILDER_BASE):terraform 2>&1 | sed 's/^/terraform: /' & \
+		wait; \
+	fi
 
 # Refresh Docker credentials
 .PHONY: refresh
@@ -60,7 +75,7 @@ configure-docker:
 .PHONY: build
 build: init validate
 	@echo "Building Docker image..."
-	@cd $(PACKER_DIR) && packer build -var="image_repository=$(LOCATION)-docker.pkg.dev/$(PROJECT_ID)/docker/$(BUILDER_NAME)" .
+	@cd $(PACKER_DIR) && packer build -var="image_repository=$(LOCATION)-docker.pkg.dev/$(PROJECT_ID)/docker/$(BUILDER_NAME)" -var="version=$(NEW_VERSION)" .
 
 # All-in-one command to build and push
 .PHONY: deploy

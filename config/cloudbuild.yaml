@@ -24,28 +24,28 @@ steps:
     waitFor: ["get-version"]
 
   # Build the docker image
-  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder-packer
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder:packer
     entrypoint: "sh"
     args:
       - "-c"
-      - "make build BUILDER_TAG=$$(cat new_version.txt)"
+      - "make build NEW_VERSION=$$(cat new_version.txt)"
     secretEnv: ["GITHUB_TOKEN"]
     id: "build"
     waitFor: ["bump-version"]
 
   # Run the tests for the built image
-  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder-packer
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder:packer
     entrypoint: "make"
     args: ["test"]
     id: "test"
     waitFor: ["build"]
 
   # Deploy the docker image
-  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder-packer
+  - name: us-central1-docker.pkg.dev/${PROJECT_ID}/docker/dev-tools-builder:packer
     entrypoint: "sh"
     args:
       - "-c"
-      - "make deploy BUILDER_TAG=$$(cat new_version.txt)"
+      - "make deploy NEW_VERSION=$$(cat new_version.txt)"
     secretEnv: ["GITHUB_TOKEN"]
     id: "deploy"
     waitFor: ["test"]
