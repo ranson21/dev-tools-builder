@@ -12,7 +12,6 @@ BUILDER_IMAGE_LATEST := $(BUILDER_BASE):latest
 COMMAND ?= help
 IMAGE_TYPE ?= complete
 PACKER_DIR := bake
-IMAGE_NAME := dev-tools-builder:latest
 NEW_VERSION ?= ""
 
 init:
@@ -128,4 +127,4 @@ delete-version:
 clean:
 	@echo "Cleaning up build artifacts..."
 	rm -rf $(PACKER_DIR)/packer_cache
-	docker rmi $(IMAGE_NAME) || true
+	docker rmi $(BUILDER_IMAGE_LATEST) || true
