@@ -30,7 +30,7 @@ variable "terraform_version" {
 
 variable "terragrunt_version" {
   type    = string
-  default = "v0.54.12"
+  default = "v0.69.13"
 }
 
 variable "version" {
