@@ -9,7 +9,12 @@ packer {
 
 
 locals {
-  timeout = "5m"
+  # 15m per provisioner. The all-in-one `dev-tools.docker.ubuntu` builder runs a
+  # long chain of provisioners (gcloud, packer, terraform, terragrunt, jq, etc.)
+  # while the 3 targeted sub-builders run in parallel on the same VM. With the
+  # previous 5m timeout, the all-in-one would starve mid-provisioner and hit a
+  # `context canceled`. 15m is generous but still bounds the total build.
+  timeout = "15m"
   # Create version tags only if version is provided
   basic_tags     = var.version == "" ? ["basic"] : ["basic", "basic-${var.version}"]
   packer_tags    = var.version == "" ? ["packer"] : ["packer", "packer-${var.version}"]
