@@ -12,3 +12,7 @@ echo 'Installing Google Cloud SDK...'
 ln -sf /usr/local/gcloud/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud
 ln -sf /usr/local/gcloud/google-cloud-sdk/bin/gsutil /usr/local/bin/gsutil
 ln -sf /usr/local/gcloud/google-cloud-sdk/bin/bq /usr/local/bin/bq
+# docker-credential-gcloud is required when `gcloud auth configure-docker`
+# wires up Artifact Registry pushes via a credential helper. Without this
+# symlink it isn't on PATH and every `docker push` fails silently.
+ln -sf /usr/local/gcloud/google-cloud-sdk/bin/docker-credential-gcloud /usr/local/bin/docker-credential-gcloud

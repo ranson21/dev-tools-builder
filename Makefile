@@ -78,7 +78,7 @@ build: init validate
 
 # All-in-one command to build and push
 .PHONY: deploy
-deploy: configure-docker push
+deploy: refresh push
 	@if [ "$(BUILDER_TAG)" != "latest" ]; then \
 		echo "Successfully built and pushed images:"; \
 		echo "  - $(LOCATION)-docker.pkg.dev/$(PROJECT_ID)/docker/$(BUILDER_NAME):$(BUILDER_TAG)"; \
